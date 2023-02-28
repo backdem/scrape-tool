@@ -1,0 +1,58 @@
+from bs4 import BeautifulSoup
+import datetime
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+
+version = '0.0.1'
+
+
+def get_version():
+    return version
+
+
+def get_country_data(country, year):
+    url = 'http://freedomhouse.org/country/' + country.lower() + '/freedom-world/' + year
+    hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+           'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+           'Accept-Encoding': 'none',
+           'Accept-Language': 'en-US,en;q=0.8',
+           'Connection': 'keep-alive'}
+
+    req = Request(url, headers=hdr)
+    data = {}
+    try:
+        with urlopen(req) as response:
+            html = response.read()
+            soup = BeautifulSoup(html, 'html.parser')
+            data['country'] = country.lower()
+            data['year'] = year
+            data['source'] = 'freedomhouse'
+            data['url'] = url
+            data['scraper'] = {'name': 'freedomhouse.py', 'version': version}
+            data['accessed_on'] = datetime.datetime.now().replace(microsecond=0).isoformat()
+            data['country_score'] = soup.find(class_='country-score').text
+            data['contents'] = []
+            tags = []
+            tags_stack = []
+            tag_counter = 3
+            for item in soup.find_all(class_=['data-label', 'field-formatted-text']):
+                if 'data-label' in item.get('class'):
+                    tag_counter -= 1
+                    if tag_counter <= 0:
+                        tags.append(item.text)
+                else:
+                    if len(tags_stack) >= len(tags):
+                        tags_stack = tags_stack[:len(tags_stack) - len(tags)]
+                    new_tags = tags_stack + tags
+                    record = {}
+                    record['text'] = item.text.replace('\n', ' ')
+                    record['tags'] = new_tags
+                    data['contents'].append(record)
+                    tags = []
+                    tags_stack = new_tags
+    except HTTPError as e:
+        print("HTTPError " + str(e.code) + " retrieving url: ", url)
+        return None
+    else:
+        return data

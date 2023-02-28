@@ -1,0 +1,7 @@
+{
+  "countries": ["portugal", "spain", "france", "belgium", "netherlands", "united-kingdom", "ireland", "germany", "denmark", "norway","sweden", "finland", "estonia", "latvia", "lithuania", "russia", "belarus", "ukraine", "romania", "bulgaria", "greece", "turkey", "north-macedonia", "albania", "kosovo", "serbia", "montenegro", "bosnia-and-herzegovina", "croatia", "slovenia", "austria", "slovakia", "czech-republic", "poland", "hungary", "switzerland", "andorra", "luxembourg", "liechtenstein", "cyprus", "san-marino", "malta", "iceland", "moldova"],
+  "years": [2022, 2021, 2020, 2019, 2018, 2017],
+  "sources": [
+    { "name": "freedomhouse",  "urlPattern": "https://freedomhouse.org/country/${country}/freedom-world/${year}", "parser": "freedomhouse.py" }
+  ]
+}
