@@ -3,7 +3,7 @@ import datetime
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
-version = '0.0.1'
+version = '0.0.2'
 
 
 def get_version():
@@ -30,24 +30,21 @@ def get_country_data(country, year):
             data['source'] = 'freedomhouse'
             data['url'] = url
             data['scraper'] = {'name': 'freedomhouse.py', 'version': version}
-            data['accessed_on'] = datetime.datetime.now().replace(microsecond=0).isoformat()
+            data['accessed_on'] = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
             data['country_score'] = soup.find(class_='country-score').text
             data['contents'] = []
             tags = []
             tags_stack = []
-            tag_counter = 3
             for item in soup.find_all(class_=['data-label', 'field-formatted-text']):
                 if 'data-label' in item.get('class'):
-                    tag_counter -= 1
-                    if tag_counter <= 0:
-                        tags.append(item.text)
+                    tags.append(item.text)
                 else:
                     if len(tags_stack) >= len(tags):
                         tags_stack = tags_stack[:len(tags_stack) - len(tags)]
                     new_tags = tags_stack + tags
                     record = {}
                     record['text'] = item.text.replace('\n', ' ')
-                    record['tags'] = new_tags
+                    record['tags'] = new_tags[-3:]
                     data['contents'].append(record)
                     tags = []
                     tags_stack = new_tags
@@ -55,4 +52,6 @@ def get_country_data(country, year):
         print("HTTPError " + str(e.code) + " retrieving url: ", url)
         return None
     else:
+        if len(data['contents']) == 0:
+            print(f'''No content for country {country} year {year}.''')
         return data

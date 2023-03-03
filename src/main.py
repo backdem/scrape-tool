@@ -12,12 +12,21 @@ def main():
                         help='output folder for json files.')
     parser.add_argument('--configfile', nargs='?', default='config.json',
                         help='path of config file.')
+    parser.add_argument('-c', '--countries', nargs='+',
+                        help='name countries to process.')
+    parser.add_argument('-y', '--years', nargs='+',
+                        help='years of reports')
+    parser.add_argument('--printoutput', action='store_false',
+                        help='print output to terminal.')
 
     args = parser.parse_args()
-
-    print(args.configfile)
-    with open(args.configfile) as file:
-        config = json.loads(file.read())
+    config = {}
+    if args.countries and args.years:
+        config['countries'] = args.countries
+        config['years'] = args.years
+    else:
+        with open(args.configfile) as file:
+            config = json.loads(file.read())
 
     for country in config['countries']:
         for year in config['years']:
