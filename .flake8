@@ -1,0 +1,3 @@
+[flake8]
+exclude = .git
+ignore = E128,E501
