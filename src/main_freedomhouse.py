@@ -2,11 +2,13 @@ import os
 import argparse
 import json
 from freedomhouse import get_country_data
+from freedomhouse import create_data_structure
+from freedomhouse import convert_to_csv
 
 
 def main():
     parser = argparse.ArgumentParser(description='Parse freedomhouse country report.')
-    parser.add_argument('--overwrite', action='store_false',
+    parser.add_argument('--overwrite', action='store_true',
                         help='overwrite output file.')
     parser.add_argument('--outputfolder', nargs='?', default='./',
                         help='output folder for json files.')
@@ -30,17 +32,16 @@ def main():
 
     for country in config['countries']:
         for year in config['years']:
-            filename = 'freedomhouse_' + country + '_' + str(year) + '.json'
-            filepath = os.path.join(args.outputfolder, filename)
-            if os.path.exists(filepath) and args.overwrite:
-                print("file already exists: ", filepath)
+            data = get_country_data(country, str(year))
+            rows = create_data_structure(data)
+            (done, file, time, ver) = convert_to_csv(rows, args.outputfolder, args.overwrite)
+            if done:
+                print(f"converted {file} with freedomhouse parser version {ver} at {time}.")
             else:
-                data = get_country_data(country, str(year))
-                if not data:
-                    continue
-                print("writing file: ", filepath)
-                with open(filepath, 'w') as f:
-                    json.dump(data, f, indent=2)
+                if file:
+                    print(f"[error] converting {file} with freedomhouse parser version {ver} at {time}.")
+                else:
+                    print(f"[error] processing country {data['country']} year {data['year']}.")
 
 
 main()
