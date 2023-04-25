@@ -46,14 +46,19 @@ def create_data_structure(sentences, country, year):
         line_counter += 1
     return rows
 
+def get_country_year_from_file(file_path):
+    file_name = os.path.splitext(os.path.basename(file_path))[0]
+    c_n_y = file_name.split("_")
+    year = c_n_y.pop().replace("BTI", "")
+    country = "_".join(c_n_y)
+    return (country.lower(), year)
+
 def convert_to_csv(file_path, output_dir="./data/bti/raw-csv/", overwrite=False):
     current_datetime_utc = datetime.datetime.utcnow()
     # convert the datetime object to ISO format with 'Z' indicating UTC timezone
     current_datetime_utc_iso = current_datetime_utc.replace(microsecond=0).isoformat() + 'Z'
     file_name = os.path.splitext(os.path.basename(file_path))[0]
-    c_n_y = file_name.split("_")
-    country = c_n_y[0].lower()
-    year = c_n_y[1].replace("BTI", "")
+    (country, year) = get_country_year_from_file(file_path)
     output_file = os.path.join(output_dir, file_name + ".csv")
     if os.path.exists(output_file) and overwrite is False:
         return (False, os.path.basename(file_path), current_datetime_utc_iso, VERSION)

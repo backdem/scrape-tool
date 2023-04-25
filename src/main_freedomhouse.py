@@ -29,10 +29,20 @@ def main():
     else:
         with open(args.configfile) as file:
             config = json.loads(file.read())
+            sources = config['sources']
+            all_countries = []
+            for source in sources.keys():
+                all_countries += sources[source]['countries']
+            all_countries = list(set(all_countries))
+            config['countries'] = all_countries
+            config['years'] = sources['freedomhouse']['years']
 
     for country in config['countries']:
         for year in config['years']:
             data = get_country_data(country, str(year))
+            if not data:
+                print(f"[error] processing country {country} year {year}.")
+                continue
             rows = create_data_structure(data)
             (done, file, time, ver) = convert_to_csv(rows, args.outputfolder, args.overwrite)
             if done:

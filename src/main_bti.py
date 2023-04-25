@@ -3,6 +3,7 @@ import glob
 import argparse
 import json
 from bti import convert_to_csv
+from bti import get_country_year_from_file
 
 
 def main():
@@ -11,6 +12,8 @@ def main():
                         help='overwrite output file.')
     parser.add_argument('--check_files', action='store_true',
                         help='check that files in data folder exist in output folder as csv.')
+    parser.add_argument('--print_countries', action='store_true',
+                        help='print countries and years for which we have reports.')
     parser.add_argument('--datafolder', nargs='?', default='./',
                         help='output folder for json files.')
     parser.add_argument('--outputfolder', nargs='?', default='./',
@@ -35,7 +38,14 @@ def main():
 
     all_files = glob.glob(os.path.join(args.datafolder, '*'))
     error_cnt = 0
+    country_list = []
+    year_list = []
     for file in all_files:
+        if args.print_countries:
+            (country, year) = get_country_year_from_file(file)
+            country_list.append(country)
+            year_list.append(year)
+            continue
         if args.check_files:
             file_name = os.path.splitext(os.path.basename(file))[0]
             output_file = os.path.join(args.outputfolder, file_name + ".csv")
@@ -49,6 +59,9 @@ def main():
             else:
                 print(f"[error] converting {file} with bti parser version {ver} at {time}.")
                 error_cnt += 1
+    if args.print_countries:
+        print(list(set(country_list)))
+        print(list(set(year_list)))
     if error_cnt == 0:
         print("all done.")
 
