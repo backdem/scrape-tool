@@ -36,24 +36,28 @@ def create_data_structure(html):
     country = None
     year = None
     rows = []
-    current_section = ["rule-of-law", None]
+    current_section = "introduction"
     soup = BeautifulSoup(html, 'html.parser')
     title = soup.find(class_='Titreobjet_cp').text
     country = utils.extract_country(title)
     year = utils.extract_year(title)
     for item in soup.find_all(class_=['li', 'Normal']):
         if 'li' in item.get('class'):
-            current_section[1] = filter_out_roman_numerals(item.text)
+            current_section = filter_out_roman_numerals(item.text)
         else:
             for anchor in item.find_all("a"):
                 # remove anchor html tags
                 anchor.decompose()
             # html text clean up since <br> are replaced with \n and sentences are broken.
-            new_text = item.text.replace('\n.', '.').replace('\n', ' ').replace(' .', '.').replace("  ", " ")
+            text = item.text.replace('\n', ' ').replace('\r', '')
+            new_text = re.sub('\s+', ' ', text).strip()
             sentences = utils.get_sentences(new_text)
+            
             for s in sentences:
-                rows.append((s.lower(), current_section, country, year, url_source))
+                if len(s.split()) > 2:
+                    rows.append((s.lower(), current_section, country, year, url_source))
     return rows
+
 
 def get_html_doc(doc_no):
     url = url_pattern + str(doc_no)

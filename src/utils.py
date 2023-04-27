@@ -11,20 +11,12 @@ def get_sentences(text):
     sentences = []
     for line in text.splitlines():
         ss = nltk.sent_tokenize(line)
-        # assume sentence is longer than 1 word starts with a letter and ends with fullstop
-        for s in ss:
-            words = s.split()
-            if len(words) < 2:
-                continue
-            if s[0] == " ":
-                s = s[1:]
-            if not words[0][0].isalpha():
-                continue
-            if words[-1][-1] != ".":
-                continue
-            sentences.append(s)
+        sentences += ss
     return sentences
 
+def print_rows(rows):
+    for r in rows:
+        print(r)
 
 def extract_country(text):
     country = None
@@ -53,19 +45,6 @@ def extract_year(text):
     return year
 
 
-def get_country_year_from_text(text):
-    pattern = r"\d{4}"
-    country = None
-    year = None
-    for w in words:
-        if w in countries:
-            country = w
-        match_year = re.search(pattern, w)
-        if match_year:
-            year = match_year.group()
-    return (country, year)
-
-
 def convert_to_csv(rows, output_dir=None, overwrite=False, country=None, year=None):
     if not (output_dir and country and year):
         raise TypeError("parameters can not be None")
@@ -81,6 +60,7 @@ def convert_to_csv(rows, output_dir=None, overwrite=False, country=None, year=No
     else:
         with open(output_file, mode="w", newline="") as csv_file:
             writer = csv.writer(csv_file)
+            writer.writerow([f"# Generated on {current_datetime_utc_iso}"])
             header = ("sentence", "section", "country", "year", "source")
             writer.writerow(header)
             for row in rows:

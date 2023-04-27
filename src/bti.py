@@ -2,6 +2,7 @@ import nltk
 import os
 import datetime
 import csv
+import utils
 
 from striprtf.striprtf import rtf_to_text
 from nltk.tokenize import sent_tokenize
@@ -18,6 +19,7 @@ def get_rtf_as_sentences(file_path):
         for line in lines:
             sentences += nltk.sent_tokenize(line)
     return sentences
+
 
 def create_data_structure(sentences, country, year):
     rows = []

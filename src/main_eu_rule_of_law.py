@@ -3,6 +3,7 @@ import argparse
 import json
 from eu_rule_of_law import create_data_structure
 from utils import convert_to_csv
+from utils import print_rows
 from eu_rule_of_law import get_html_doc
 from eu_rule_of_law import get_country_and_year_from_html
 
@@ -17,7 +18,7 @@ def main():
                         help='path of config file.')
     parser.add_argument('-id', '--docid', nargs='+',
                         help='document id from 301 to 326')
-    parser.add_argument('--printoutput', action='store_false',
+    parser.add_argument('--printoutput', action='store_true',
                         help='print output to terminal.')
 
     args = parser.parse_args()
@@ -36,10 +37,13 @@ def main():
         if not (country and year):
             print("[error] with doc: ", id)
         rows = create_data_structure(html)
-        (done, file, time) = convert_to_csv(rows, args.outputfolder, overwrite=args.overwrite, country=country, year=year)
-        if done:
-            print(f"converted {file} with eu-rule-of-law parser at {time}.")
+        if args.printoutput:
+            print_rows(rows)
         else:
-            print(f"[error] converting {file} with at {time}.")
+            (done, file, time) = convert_to_csv(rows, args.outputfolder, overwrite=args.overwrite, country=country, year=year)
+            if done:
+                print(f"converted {file} with eu-rule-of-law parser at {time}.")
+            else:
+                print(f"[error] converting {file} with at {time}.")
 
 main()
