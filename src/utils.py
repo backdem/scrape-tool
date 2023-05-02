@@ -68,6 +68,14 @@ def extract_year(text):
     return year
 
 
+def report_exists(output_dir, country, year, type='csv'):
+    file_name = country + "_" + str(year) + "." + type
+    output_file = os.path.join(output_dir, file_name)
+    if os.path.exists(output_file):
+        return True
+    return False
+
+
 def convert_to_csv(rows, output_dir=None, overwrite=False, country=None, year=None):
     if not output_dir:
         raise TypeError("parameters can not be None")

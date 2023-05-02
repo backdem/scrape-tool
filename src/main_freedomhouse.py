@@ -1,4 +1,3 @@
-import os
 import argparse
 import json
 from freedomhouse import get_country_data
@@ -39,6 +38,10 @@ def main():
 
     for country in config['countries']:
         for year in config['years']:
+            if not args.overwrite:
+                if utils.report_exists(args.outputfolder, country, year):
+                    print(f"[info] report exists for {country} year {year}, skipping.")
+                    continue
             data = get_country_data(country, str(year))
             if not data:
                 print(f"[error] processing country {country} year {year}.")

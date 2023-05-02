@@ -3,12 +3,13 @@ from bs4 import BeautifulSoup
 import datetime
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+from urllib import parse
 import utils
 nltk.download("punkt")
 
 
 def get_country_data(country, year):
-    url = 'http://freedomhouse.org/country/' + country.lower() + '/freedom-world/' + year
+    url = 'http://freedomhouse.org/country/' + parse.quote(country.lower()) + '/freedom-world/' + year
     hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
