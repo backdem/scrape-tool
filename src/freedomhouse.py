@@ -1,19 +1,10 @@
-import os
-import csv
 import nltk
 from bs4 import BeautifulSoup
 import datetime
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
-from nltk.tokenize import sent_tokenize
+import utils
 nltk.download("punkt")
-
-
-version = '0.0.3'
-
-
-def get_version():
-    return version
 
 
 def get_country_data(country, year):
@@ -35,7 +26,7 @@ def get_country_data(country, year):
             data['year'] = year
             data['source'] = 'freedomhouse'
             data['url'] = url
-            data['scraper'] = {'name': 'freedomhouse.py', 'version': version}
+            data['scraper'] = {'name': 'freedomhouse.py'}
             data['accessed_on'] = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
             data['country_score'] = soup.find(class_='country-score').text
             data['contents'] = []
@@ -62,37 +53,14 @@ def get_country_data(country, year):
             print(f'''No content for country {country} year {year}.''')
         return data
 
+
 def create_data_structure(data):
     rows = []
     for c in data['contents']:
         text = c['text']
         tags = c['tags']
-        lines = text.splitlines()
-        sentences = []
-        for line in lines:
-            sentences += nltk.sent_tokenize(line)
+        sentences = utils.get_sentences(text)
         for s in sentences:
-            rows.append((s, tags, data['country'], data['year'], data['source']))
+            if utils.is_a_sentence(s):
+                rows.append((s, tags, data['country'], data['year'], data['source']))
     return rows
-
-
-def convert_to_csv(rows, output_dir="./data/freedomhouse/raw-csv/", overwrite=False):
-    current_datetime_utc = datetime.datetime.utcnow()
-    # convert the datetime object to ISO format with 'Z' indicating UTC timezone
-    current_datetime_utc_iso = current_datetime_utc.replace(microsecond=0).isoformat() + 'Z'
-    if len(rows) == 0:
-        return (False, None, current_datetime_utc_iso, version)
-    country = rows[0][2]
-    year = rows[0][3]
-    file_name = country + "_" + year + ".csv"
-    output_file = os.path.join(output_dir, file_name)
-    if os.path.exists(output_file) and overwrite is False:
-        return (False, file_name, current_datetime_utc_iso, version)
-    else:
-        with open(output_file, mode="w", newline="") as csv_file:
-            writer = csv.writer(csv_file)
-            header = ("sentence", "section", "country", "year", "source")
-            writer.writerow(header)
-            for row in rows:
-                writer.writerow(row)
-        return (True, file_name, current_datetime_utc_iso, version)

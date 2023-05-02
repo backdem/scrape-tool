@@ -1,4 +1,3 @@
-import os
 import argparse
 import json
 from eu_rule_of_law import create_data_structure
@@ -45,5 +44,6 @@ def main():
                 print(f"converted {file} with eu-rule-of-law parser at {time}.")
             else:
                 print(f"[error] converting {file} with at {time}.")
+
 
 main()

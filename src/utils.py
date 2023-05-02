@@ -7,6 +7,7 @@ import re
 
 countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries]
 
+
 def get_sentences(text):
     sentences = []
     for line in text.splitlines():
@@ -14,9 +15,31 @@ def get_sentences(text):
         sentences += ss
     return sentences
 
+
+def filter_sentence(s):
+    s1 = s.replace('\n', ' ').replace('\r', '')
+    s2 = re.sub(r'[^\w\s\-.!:;,?]', ' ', s1)
+    return re.sub(r'\s+', ' ', s2).strip()
+
+
+def is_a_sentence(s):
+    if not s:
+        return False
+    words = s.split()
+    sentence_endings = ['.', '?', ';', ':', '!']
+    if len(words) < 2:
+        return False
+    if not words[0][0].isalpha():
+        return False
+    if words[-1][-1] not in sentence_endings:
+        return False
+    return True
+
+
 def print_rows(rows):
     for r in rows:
         print(r)
+
 
 def extract_country(text):
     country = None
@@ -46,13 +69,19 @@ def extract_year(text):
 
 
 def convert_to_csv(rows, output_dir=None, overwrite=False, country=None, year=None):
-    if not (output_dir and country and year):
+    if not output_dir:
         raise TypeError("parameters can not be None")
     current_datetime_utc = datetime.datetime.utcnow()
     # convert the datetime object to ISO format with 'Z' indicating UTC timezone
     current_datetime_utc_iso = current_datetime_utc.replace(microsecond=0).isoformat() + 'Z'
     if len(rows) == 0:
         return (False, None, current_datetime_utc_iso)
+
+    if not country:
+        country = rows[0][2]
+    if not year:
+        year = rows[0][3]
+
     file_name = country + "_" + year + ".csv"
     output_file = os.path.join(output_dir, file_name)
     if os.path.exists(output_file) and overwrite is False:
@@ -84,7 +113,7 @@ def create_data_structure(sentences, country, year, source):
             # Ignore numbered section item
             continue
         if (len(words) < 4 and last[-1].isalpha()):
-            # Any sentence with less than 4 words and does not end with punctuation 
+            # Any sentence with less than 4 words and does not end with punctuation
             # we assume is a section title and add it as a tag to the sentence for better context.
             current_heading = s
             line_counter = 0

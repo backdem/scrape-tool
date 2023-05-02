@@ -1,6 +1,4 @@
-import os
 import re
-import nltk
 from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
@@ -8,6 +6,7 @@ import utils
 
 url_pattern = 'https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:52020SC0'
 url_source = None
+
 
 def filter_out_roman_numerals(text):
     pattern = r"\b[IVXLCDM]+\b"
@@ -50,9 +49,8 @@ def create_data_structure(html):
                 anchor.decompose()
             # html text clean up since <br> are replaced with \n and sentences are broken.
             text = item.text.replace('\n', ' ').replace('\r', '')
-            new_text = re.sub('\s+', ' ', text).strip()
+            new_text = re.sub(r'\s+', ' ', text).strip()
             sentences = utils.get_sentences(new_text)
-            
             for s in sentences:
                 if len(s.split()) > 2:
                     rows.append((s.lower(), current_section, country, year, url_source))
@@ -80,9 +78,3 @@ def get_html_doc(doc_no):
         return None
     else:
         return html
-
-# test
-#html = get_html_doc(302)
-#(country, year) = get_country_and_year_from_html(html)
-#rows = create_data_structure(html)
-#result = utils.convert_to_csv(rows, output_dir="./data/sources/eu-rule-of-law/raw-csv/", overwrite=True, country=country, year=year)

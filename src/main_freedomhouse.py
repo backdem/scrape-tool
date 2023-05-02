@@ -3,7 +3,7 @@ import argparse
 import json
 from freedomhouse import get_country_data
 from freedomhouse import create_data_structure
-from freedomhouse import convert_to_csv
+import utils
 
 
 def main():
@@ -44,12 +44,12 @@ def main():
                 print(f"[error] processing country {country} year {year}.")
                 continue
             rows = create_data_structure(data)
-            (done, file, time, ver) = convert_to_csv(rows, args.outputfolder, args.overwrite)
+            (done, file, time) = utils.convert_to_csv(rows, args.outputfolder, overwrite=args.overwrite)
             if done:
-                print(f"converted {file} with freedomhouse parser version {ver} at {time}.")
+                print(f"converted {file} with freedomhouse parser at {time}.")
             else:
                 if file:
-                    print(f"[error] converting {file} with freedomhouse parser version {ver} at {time}.")
+                    print(f"[error] converting {file} with freedomhouse parser at {time}.")
                 else:
                     print(f"[error] processing country {data['country']} year {data['year']}.")
 

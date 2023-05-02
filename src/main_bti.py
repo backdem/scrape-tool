@@ -1,9 +1,8 @@
 import os
 import glob
 import argparse
-import json
-from bti import convert_to_csv
-from bti import get_country_year_from_file
+import bti
+import utils
 
 
 def main():
@@ -41,8 +40,8 @@ def main():
     country_list = []
     year_list = []
     for file in all_files:
+        (country, year) = bti.get_country_year_from_file(file)
         if args.print_countries:
-            (country, year) = get_country_year_from_file(file)
             country_list.append(country)
             year_list.append(year)
             continue
@@ -53,11 +52,13 @@ def main():
                 error_cnt += 1
                 print(f"[error] file {output_file} does not exist")
         else:
-            (done, file, time, ver) = convert_to_csv(file, args.outputfolder, overwrite=args.overwrite)
+            sentences = bti.get_rtf_as_sentences(file)
+            rows = bti.create_data_structure(sentences, country, year)
+            (done, name, time) = utils.convert_to_csv(rows, args.outputfolder, overwrite=args.overwrite, country=country, year=year)
             if done:
-                print(f"converted {file} with bti parser version {ver} at {time}.")
+                print(f"converted {file} with bti parser at {time}.")
             else:
-                print(f"[error] converting {file} with bti parser version {ver} at {time}.")
+                print(f"[error] converting {file} with bti parser at {time}.")
                 error_cnt += 1
     if args.print_countries:
         print(list(set(country_list)))
