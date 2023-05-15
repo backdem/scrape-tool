@@ -1,17 +1,15 @@
+import nltk
 from bs4 import BeautifulSoup
 import datetime
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
-
-version = '0.0.2'
-
-
-def get_version():
-    return version
+from urllib import parse
+import utils
+nltk.download("punkt")
 
 
 def get_country_data(country, year):
-    url = 'http://freedomhouse.org/country/' + country.lower() + '/freedom-world/' + year
+    url = 'http://freedomhouse.org/country/' + parse.quote(country.lower()) + '/freedom-world/' + year
     hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
@@ -29,7 +27,7 @@ def get_country_data(country, year):
             data['year'] = year
             data['source'] = 'freedomhouse'
             data['url'] = url
-            data['scraper'] = {'name': 'freedomhouse.py', 'version': version}
+            data['scraper'] = {'name': 'freedomhouse.py'}
             data['accessed_on'] = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
             data['country_score'] = soup.find(class_='country-score').text
             data['contents'] = []
@@ -55,3 +53,15 @@ def get_country_data(country, year):
         if len(data['contents']) == 0:
             print(f'''No content for country {country} year {year}.''')
         return data
+
+
+def create_data_structure(data):
+    rows = []
+    for c in data['contents']:
+        text = c['text']
+        tags = c['tags']
+        sentences = utils.get_sentences(text)
+        for s in sentences:
+            if utils.is_a_sentence(s):
+                rows.append((s, tags, data['country'], data['year'], data['source']))
+    return rows
