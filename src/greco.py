@@ -36,10 +36,21 @@ def get_text(data: bytes) -> str:
     with PyMuPDF.open(stream=data, filetype="pdf") as doc:
         text = ""
         for page in doc:
-            text += page.get_text() + "\n"
+            text += page.get_text() 
     return text
 
+def convert_pdf_to_text(file):
+    file_bytes = open(file, "rb").read()
+    text = get_text(file_bytes)
+    nt = text.replace('\n',' ')
+    return nt
+
+
 # test
-# file_path = "./data/coe/Greco-AdHocRep(2019)2-FINAL-eng-Greece-PUBLIC.docx.pdf"
-# r = convert_pdf_to_csv(file_path, "./data/greco/raw-csv/", True)
+file_path = "./data/sources/greco/raw-pdf/Greco-AdHocRep(2019)2-FINAL-eng-Greece-PUBLIC.docx.pdf"
+text = convert_pdf_to_text(file_path)
+ss = utils.get_sentences(text)
+for s in ss:
+    print(s)
+# r = convert_pdf_to_csv(file_path, "./data/sources/greco/raw-csv/", True)
 # print(r)
