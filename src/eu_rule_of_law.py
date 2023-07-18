@@ -53,7 +53,7 @@ def create_data_structure(html):
             sentences = utils.get_sentences(new_text)
             for s in sentences:
                 if len(s.split()) > 2:
-                    rows.append((s.lower(), current_section, country, year, url_source))
+                    rows.append((s.lower(), current_section, country, year, "eu_rule_of_law"))
     return rows
 
 
