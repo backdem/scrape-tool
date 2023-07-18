@@ -10,6 +10,14 @@ nlp = spacy.load("en_core_web_sm")
 countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries]
 
 
+def create_folder_if_not_exists(folder_path):
+      # Check if the folder already exists
+      if not os.path.exists(folder_path):
+          # Create the folder if it does not exist
+          os.makedirs(folder_path)
+          print(f"Folder '{folder_path}' created successfully.")
+
+
 def get_year_from_text(text):
     pattern = r"\d{4}"
     year = None
