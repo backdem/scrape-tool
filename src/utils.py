@@ -4,21 +4,74 @@ import nltk
 import datetime
 import pycountry
 import re
+import spacy
+nlp = spacy.load("en_core_web_sm")
 
 countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries]
 
 
+def create_folder_if_not_exists(folder_path):
+      # Check if the folder already exists
+      if not os.path.exists(folder_path):
+          # Create the folder if it does not exist
+          os.makedirs(folder_path)
+          print(f"Folder '{folder_path}' created successfully.")
+
+
+def get_year_from_text(text):
+    pattern = r"\d{4}"
+    year = None
+    match_year = re.search(pattern, text)
+    if match_year:
+        year = match_year.group()
+    return year
+
+def get_sentences2(text):
+    sentences = []
+    doc = nlp(text)
+    for sent in doc.sents:
+        more_sents = split_itemized_sentence(sent.text)
+        for s in more_sents:
+            words = len(s.split(' '))
+            if (words < 3):
+                continue
+            if '.....' in s:
+                continue
+            s = re.sub(r'^\d+', '', s)
+            s = filter_sentence(s)
+            sentences.append(s)
+    return sentences
+
 def get_sentences(text):
+    text = text.replace('e.g.', 'eeggee')
+    text = text.replace('e. g.', 'eeggee')
+    text = text.replace('i. e.', 'iieeii')
+    text = text.replace('i.e.', 'iieeii')
+
     sentences = []
     for line in text.splitlines():
         ss = nltk.sent_tokenize(line)
         sentences += ss
+    for i in range(len(sentences)):
+        sentences[i] = sentences[i].replace('eeggee', 'e.g.')
+        sentences[i] = sentences[i].replace('iieeii', 'i.e.')
     return sentences
 
 
+def split_itemized_sentence(text):
+    text = text.replace('i.e.', 'iieeii')
+    pattern = r'(\d+)\.(\d+)'
+    replacement = r'\1DOT\2'
+    text = re.sub(pattern, replacement, text)
+    items = re.split(r'(?:\d+\.|[IVX]+\.|[ivx]+\.)', text)
+    items = [item.strip() for item in items if item.strip()]
+    items = [item.replace('iieeii', 'i.e.') for item in items]
+    items = [item.replace('DOT', '.') for item in items]
+    return items
+
 def filter_sentence(s):
     s1 = s.replace('\n', ' ').replace('\r', '')
-    s2 = re.sub(r'[^\w\s\-.!:;,?]', ' ', s1)
+    s2 = re.sub(r'[^\w\s\-.!:;,?()]', ' ', s1)
     return re.sub(r'\s+', ' ', s2).strip()
 
 
@@ -26,13 +79,13 @@ def is_a_sentence(s):
     if not s:
         return False
     words = s.split()
-    sentence_endings = ['.', '?', ';', ':', '!']
+    #sentence_endings = ['.', '?', ';', ':', '!']
     if len(words) < 2:
         return False
     if not words[0][0].isalpha():
         return False
-    if words[-1][-1] not in sentence_endings:
-        return False
+    #if words[-1][-1] not in sentence_endings:
+    #    return False
     return True
 
 
@@ -76,7 +129,7 @@ def report_exists(output_dir, country, year, type='csv'):
     return False
 
 
-def convert_to_csv(rows, output_dir=None, overwrite=False, country=None, year=None):
+def convert_to_csv(rows, output_dir=None, overwrite=False, country=None, year=None, append=False):
     if not output_dir:
         raise TypeError("parameters can not be None")
     current_datetime_utc = datetime.datetime.utcnow()
@@ -95,11 +148,15 @@ def convert_to_csv(rows, output_dir=None, overwrite=False, country=None, year=No
     if os.path.exists(output_file) and overwrite is False:
         return (False, file_name, current_datetime_utc_iso)
     else:
-        with open(output_file, mode="w", newline="") as csv_file:
+        mode = "a" if append else "w"
+        with open(output_file, mode=mode, newline="") as csv_file:
             writer = csv.writer(csv_file)
-            writer.writerow([f"# Generated on {current_datetime_utc_iso}"])
-            header = ("sentence", "section", "country", "year", "source")
-            writer.writerow(header)
+            if not append:
+                writer.writerow([f"# Generated on {current_datetime_utc_iso}"])
+                header = ("sentence", "section", "country", "year", "source")
+                writer.writerow(header)
+            else:
+                print(f"appending to {output_file}")
             for row in rows:
                 writer.writerow(row)
         return (True, file_name, current_datetime_utc_iso)
