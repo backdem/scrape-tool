@@ -11,6 +11,17 @@ python src/download_greco_pdfs.py --outputfolder data/sources/greco/raw-pdf
 ```
 python src/main_greco.py --outputfolder data/sources/greco/raw-csv/ --inputfolder data/sources/greco/raw-pdf/ --overwrite
 ```
-
+## download and parse freedom house reports
+```
+python src/main_freedomhouse.py --configfile src/config.json --outputfolder ./data/sources/freedomhouse/raw-csv/ --overwrite
+```
+## parse BTI rtf report files
+```
+python src/main_bti.py --datafolder ./data/sources/bti/raw-rtf/ --outputfolder ./data/sources/bti/raw-csv/ --overwrite
+```
+## generate dataset
+```
+python src/generate_dataset.py --rootfolder data/sources/ --outputfilename ./all_countries_0.0.4.csv
+```
 
 
