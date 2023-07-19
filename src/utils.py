@@ -1,11 +1,15 @@
 import os
 import csv
 import nltk
+from nltk.corpus import words
 import datetime
 import pycountry
 import re
 import spacy
 nlp = spacy.load("en_core_web_sm")
+
+nltk.download('punkt')
+nltk.download('words')
 
 countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries]
 
@@ -58,13 +62,25 @@ def get_sentences(text):
     return sentences
 
 
+def count_non_english_words(sentence):
+    english_word_set = set(words.words())
+    words_in_sentence = nltk.word_tokenize(sentence.lower())
+
+    non_english_count = 0
+    for word in words_in_sentence:
+        if word not in english_word_set:
+            non_english_count += 1
+
+    return non_english_count
+
+
 def split_itemized_sentence(text):
     text = text.replace('i.e.', 'iieeii')
     pattern = r'(\d+)\.(\d+)'
     replacement = r'\1DOT\2'
     text = re.sub(pattern, replacement, text)
-    items = re.split(r'(?:\d+\.|[IVX]+\.|[ivx]+\.)', text)
-    items = [item.strip() for item in items if item.strip()]
+    items = re.split(r'(?:\d+\.|[IVX]+[.)]|[ivx]+[.)]|\([a-z]\)|\s*[a-z]\))', text)
+    items = [item.strip() for item in items if item]
     items = [item.replace('iieeii', 'i.e.') for item in items]
     items = [item.replace('DOT', '.') for item in items]
     return items
