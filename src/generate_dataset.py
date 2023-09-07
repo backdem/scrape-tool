@@ -42,7 +42,7 @@ def rename_country(country):
     def g(x):
         return unicodedata.normalize('NFKD', x)
 
-    t = {g("north_macedonia"): "north-macedonia", g("turkiye"): "turkey", g("türkiye"): "turkey", g("bosnia-and-herzegovina"): g("bosnia-herzegovina"), g("russian-federation"): "russia", g("republic-of-moldova"): "moldova"}
+    t = {g("czech-republic"): "czechia", g("north_macedonia"): "north-macedonia", g("turkiye"): "turkey", g("türkiye"): "turkey", g("bosnia-and-herzegovina"): g("bosnia-herzegovina"), g("russian-federation"): "russia", g("republic-of-moldova"): "moldova"}
     if g(country) in t.keys():
         return t[g(country)]
     else:
