@@ -4,6 +4,7 @@ import argparse
 import pandas as pd
 import datetime
 import utils
+import unicodedata
 
 parser = argparse.ArgumentParser(description='Combine sources into one dataset.')
 parser.add_argument('--outputfilename', nargs='?', default='./output.csv',
@@ -35,6 +36,17 @@ def write_csv_file(df):
     with open(args.outputfilename, 'w') as f:
         f.write(f"# Generated on {current_datetime_utc_iso}\n")
         df.to_csv(f, index=False)
+
+def rename_country(country):
+    # this is needed to compare "türkiye"
+    def g(x):
+        return unicodedata.normalize('NFKD', x)
+
+    t = {g("czech-republic"): "czechia", g("north_macedonia"): "north-macedonia", g("turkiye"): "turkey", g("türkiye"): "turkey", g("bosnia-and-herzegovina"): g("bosnia-herzegovina"), g("russian-federation"): "russia", g("republic-of-moldova"): "moldova"}
+    if g(country) in t.keys():
+        return t[g(country)]
+    else:
+        return country
 
 
 def filter_rows(df):
@@ -72,6 +84,8 @@ def filter_rows(df):
         if ratio_single_word_char > 0.7:
             rows_to_drop.append(index)
             continue
+        # merge same countries with different names
+        row['country'] = rename_country(row['country'])
         # check to split long sentences further e.g. lists
         if len(words) > 100:
             # filter out sentences with too mnay non-english words
@@ -102,3 +116,4 @@ csv_files = find_csv_files(args.rootfolder)
 df = combine_csv_files(csv_files)
 filtered_df = filter_rows(df)
 write_csv_file(filtered_df)
+
