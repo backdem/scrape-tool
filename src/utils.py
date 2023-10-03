@@ -12,7 +12,9 @@ nlp = spacy.load("en_core_web_sm")
 nltk.download('punkt')
 nltk.download('words')
 
-countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries] +  [c.name.lower() for c in pycountry.countries] + ["venda", "kosovo", "yugoslavia", "ciskei", "madeira", "canary islands", "channel islands", "reunion", "syria", "st. kitts-nevis", "st. vincent and the grenadines", "british virgin islands", "iran", "russia", "falkland islands", "macedonia", "aimenia", "azeitaijan", "swaziland", "vojvodina", "united states virgin islands", "northern marianas", "turks and caicos", "transkei", "svalbard", "wallis and futuna islands", "melilla", "irian jaya", "faeroe islands", "zaire", "united states of america", "sao tome and príncipe", "st. lucia", "korea, north", "korea, south", "laos", "micronesia", "kyrgyz republic", "brunei", "burma (myanmar)", "cape verde", "czech republic", "bosnia-herzegovina", "nagorno-karabakh", "(serbia and montenegro)", "st. pierre and miquelon", "rapanui (easter island)"]
+countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries] + [c.name.lower() for c in pycountry.countries] + ["venda", "kosovo", "yugoslavia", "ciskei", "madeira", "canary islands", "channel islands", "reunion", "syria", "st. kitts-nevis", "st. vincent and the grenadines", "british virgin islands", "iran", "russia", "falkland islands", "macedonia", "aimenia", "azeitaijan", "swaziland", "vojvodina", "united states virgin islands", "northern marianas", "turks and caicos", "transkei", "svalbard", "wallis and futuna islands", "melilla", "irian jaya", "faeroe islands", "zaire", "united states of america", "sao tome and príncipe", "st. lucia", "korea, north", "korea, south", "laos", "micronesia", "kyrgyz republic", "brunei", "burma (myanmar)", "cape verde", "czech republic", "bosnia-herzegovina", "nagorno-karabakh", "(serbia and montenegro)", "st. pierre and miquelon", "rapanui (easter island)", "st. helena and dependencies"]
+
+max_country_len = max(len(c.split()) for c in countries)
 
 def is_country(text):
     if len(text.split(' ')) > 6:
