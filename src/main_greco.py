@@ -1,5 +1,4 @@
 import argparse
-import fitz as PyMuPDF
 import utils as utils
 import pycountry
 import os
@@ -27,23 +26,15 @@ def convert_pdf_to_csv(file, output_dir, overwrite=False):
     if not (country and year):
         raise ValueError(f"could not determine country or year from file name {file}")
     file_bytes = open(file, "rb").read()
-    text = get_text(file_bytes)
+    text = utils.get_pdf_text(file_bytes)
     sentences = utils.get_sentences(text)
     rows = utils.create_data_structure(sentences, country, year, "greco")
     return utils.convert_to_csv(rows, output_dir, overwrite=overwrite, country=country, year=year)
 
 
-def get_text(data: bytes) -> str:
-    with PyMuPDF.open(stream=data, filetype="pdf") as doc:
-        text = ""
-        for page in doc:
-            text += page.get_text()
-    return text
-
-
 def convert_pdf_to_text(file):
     file_bytes = open(file, "rb").read()
-    text = get_text(file_bytes)
+    text = utils.get_pdf_text(file_bytes)
     nt = text.replace('\n', '')
     return nt
 
