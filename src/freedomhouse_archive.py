@@ -5,6 +5,7 @@ import os
 import re
 
 test_file = '../data/sources/freedomhouse/raw-pdf/Freedom_in_the_World_1993-1994_complete_book.pdf'
+test_file2 = '../data/sources/freedomhouse/raw-pdf/Freedom_in_the_World_2013_complete_book.pdf'
 
 
 def get_country_year_from_file(file_name):
@@ -80,14 +81,15 @@ def _main():
 def main():
     #text = convert_pdf_to_text(test_file)
     #print(text)
-    text_with_page_numbers = utils.extract_text_with_page_numbers(test_file)
+    text_with_page_numbers = utils.extract_text_with_page_numbers(test_file2)
     counter = 0
     for page_number, text in text_with_page_numbers:
+        found = False
         lines = text.splitlines()
         lastlines = []
         for line in lines:
-            if 'Polity' in line:
-                found = False
+            #if 'Polity' in line:
+            if 'Political Rights' in line:
                 for lastline in reversed(lastlines):
                     if utils.is_country(lastline):
                         print(f"Page {page_number}: {lastline}")
@@ -95,6 +97,8 @@ def main():
                         found = True
                         lastlines = []
                         break
+        if (found == True):
+            continue
                 #if not found:
                 #    lines = [l for l in lastlines if (len(l.split()) < 6) ]
                 #    print(f"WARN: {page_number}: {lines}")
