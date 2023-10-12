@@ -4,7 +4,8 @@ import pycountry
 import os
 import re
 
-countries = [c.name.lower() for c in pycountry.countries]
+test_file = '../data/sources/freedomhouse/raw-pdf/Freedom_in_the_World_1993-1994_complete_book.pdf'
+test_file2 = '../data/sources/freedomhouse/raw-pdf/Freedom_in_the_World_2013_complete_book.pdf'
 
 
 def get_country_year_from_file(file_name):
@@ -31,7 +32,6 @@ def convert_pdf_to_csv(file, output_dir, overwrite=False):
     rows = utils.create_data_structure(sentences, country, year, "greco")
     return utils.convert_to_csv(rows, output_dir, overwrite=overwrite, country=country, year=year)
 
-
 def convert_pdf_to_text(file):
     file_bytes = open(file, "rb").read()
     text = utils.get_pdf_text(file_bytes)
@@ -48,7 +48,7 @@ def create_data_structure(file_path, country, year):
     return rows
 
 
-def main():
+def _main():
     parser = argparse.ArgumentParser(description='Parse GRECO country report.')
     parser.add_argument('--overwrite', action='store_true',
                         help='overwrite output file.')
@@ -78,5 +78,34 @@ def main():
             else:
                 print(f"[error] converting {country}/{year} with at {time}.")
 
+def main():
+    #text = convert_pdf_to_text(test_file)
+    #print(text)
+    text_with_page_numbers = utils.extract_text_with_page_numbers(test_file)
+    counter = 0
+    pages_processed = {}
+    for page_number, text in text_with_page_numbers:
+        lines = text.splitlines()
+        lastlines = []
+        for line in lines:
+            if (pages_processed.get(page_number, False) == True):
+                break
+            if 'Polity' in line:
+            #if 'Political Rights' in line:
+                for lastline in reversed(lastlines):
+                    if utils.is_country(lastline):
+                        print(f"Page {page_number}: {lastline}")
+                        counter += 1
+                        pages_processed[page_number] = True
+                        lastlines = []
+                        break
+                #if not found:
+                #    lines = [l for l in lastlines if (len(l.split()) < 6) ]
+                #    print(f"WARN: {page_number}: {lines}")
+
+            if len(lastlines) > 12:
+                lastlines.pop()
+            lastlines.append(line)
+    print(f"Total countries is {counter}")
 
 main()

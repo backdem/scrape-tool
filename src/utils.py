@@ -1,5 +1,6 @@
 import os
 import csv
+import fitz as PyMuPDF
 import nltk
 from nltk.corpus import words
 import datetime
@@ -11,7 +12,56 @@ nlp = spacy.load("en_core_web_sm")
 nltk.download('punkt')
 nltk.download('words')
 
-countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries]
+countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries] + [c.name.lower() for c in pycountry.countries] + ["venda", "kosovo", "yugoslavia", "ciskei", "madeira", "canary islands", "channel islands", "reunion", "syria", "st. kitts-nevis", "st. vincent and the grenadines", "british virgin islands", "iran", "russia", "falkland islands", "macedonia", "aimenia", "azeitaijan", "swaziland", "vojvodina", "united states virgin islands", "northern marianas", "turks and caicos", "transkei", "svalbard", "wallis and futuna islands", "melilla", "irian jaya", "faeroe islands", "zaire", "united states of america", "sao tome and príncipe", "st. lucia", "korea, north", "korea, south", "laos", "micronesia", "kyrgyz republic", "brunei", "burma (myanmar)", "cape verde", "czech republic", "bosnia-herzegovina", "nagorno-karabakh", "(serbia and montenegro)", "st. pierre and miquelon", "rapanui (easter island)", "st. helena and dependencies"]
+
+max_country_len = max(len(c.split()) for c in countries)
+
+def is_country(text):
+    if len(text.split(' ')) > 6:
+        return False
+    cleaned_text = text.lower().strip()
+    if cleaned_text in countries:
+        return True
+    else:
+        for word in cleaned_text.split(' '):
+            if word in countries:
+                return True
+    return False
+        
+
+def extract_pdf_metadata(file_path):
+    # Open the PDF file
+    pdf_document = PyMuPDF.open(file_path)
+
+    # Get document metadata
+    metadata = pdf_document.metadata
+
+    # Close the PDF document
+    pdf_document.close()
+    return metadata
+
+def extract_text_with_page_numbers(file_path):
+    # Open the PDF file
+    pdf_document = PyMuPDF.open(file_path)
+    text_with_page_numbers = []
+
+    for page_number in range(pdf_document.page_count):
+        page = pdf_document.load_page(page_number)
+        text = page.get_text("text")
+        text_with_page_numbers.append((page_number + 1, text))  # Add 1 to start page numbering from 1
+
+    # Close the PDF document
+    pdf_document.close()
+
+    return text_with_page_numbers
+
+
+def get_pdf_text(data: bytes) -> str:
+    with PyMuPDF.open(stream=data, filetype="pdf") as doc:
+        text = ""
+        for page in doc:
+            text += page.get_text()
+    return text
 
 
 def create_folder_if_not_exists(folder_path):

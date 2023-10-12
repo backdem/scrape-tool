@@ -19,6 +19,10 @@ python src/main_freedomhouse.py --configfile src/config.json --outputfolder ./da
 ```
 python src/main_bti.py --datafolder ./data/sources/bti/raw-rtf/ --outputfolder ./data/sources/bti/raw-csv/ --overwrite
 ```
+### download freedomhouse complete book archives
+```
+python src/download_freedomhouse_archive_pdfs.py --outputfolder ./data/source/freedomhouse/raw-pdf/
+```
 ## generate dataset
 ```
 python src/generate_dataset.py --rootfolder data/sources/ --outputfilename ./all_countries_0.0.4.csv
