@@ -81,24 +81,24 @@ def _main():
 def main():
     #text = convert_pdf_to_text(test_file)
     #print(text)
-    text_with_page_numbers = utils.extract_text_with_page_numbers(test_file2)
+    text_with_page_numbers = utils.extract_text_with_page_numbers(test_file)
     counter = 0
+    pages_processed = {}
     for page_number, text in text_with_page_numbers:
-        found = False
         lines = text.splitlines()
         lastlines = []
         for line in lines:
-            #if 'Polity' in line:
-            if 'Political Rights' in line:
+            if (pages_processed.get(page_number, False) == True):
+                break
+            if 'Polity' in line:
+            #if 'Political Rights' in line:
                 for lastline in reversed(lastlines):
                     if utils.is_country(lastline):
                         print(f"Page {page_number}: {lastline}")
                         counter += 1
-                        found = True
+                        pages_processed[page_number] = True
                         lastlines = []
                         break
-        if (found == True):
-            continue
                 #if not found:
                 #    lines = [l for l in lastlines if (len(l.split()) < 6) ]
                 #    print(f"WARN: {page_number}: {lines}")
