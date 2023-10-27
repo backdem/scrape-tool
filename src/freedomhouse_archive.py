@@ -134,6 +134,7 @@ def _main():
 
 
 def main():
+
     # Create a dict of years and the search term to look for.
     year_key_map = {}
     current_year = datetime.date.today().year
@@ -150,7 +151,37 @@ def main():
     pdf_files = [test_file]
     countries = {}
     weird_char = chr(0xF0C8)
+    big_countries = ["United Kingdom", "United States", "Australia", "Switzerland", "France", "Italy", "Denmark", "Spain"]
     corpuses = {}
+
+
+    def clean_line(line):
+        # Strip out weird chars
+        l = re.sub(r'^o ', '', line)
+        l = re.sub(r'^r ', '', l)
+        l = l.replace(weird_char, "")\
+            .strip()
+        return l
+
+
+    def find_countries(lines):
+        countries = []
+        for line in lines:
+            l = clean_line(line)
+            if utils.is_country(l):
+                countries.append(l)
+        return countries
+
+
+    def remove_big_countries(lines):
+        filtered_lines = []
+        for line in lines:
+            l = clean_line(line)
+            if l not in big_countries:
+                filtered_lines.append(line)
+        return filtered_lines
+
+
     # Process each file
     for file in pdf_files:
         year = get_year_from_text(file)
@@ -169,27 +200,35 @@ def main():
             if page_number > end_page:
                 break
             lines = text.splitlines()
+            # Keep track of a number of last read lines to find 
+            # the country name in the buffer. 
             lastlines = []
             for line_no, line in enumerate(lines):
                 if len(lastlines) > 120:
                     lastlines.pop()
+                # Sometimes the country name is in front of 
+                # the current line so we also keep track of 
+                # look ahead.
                 look_ahead = lines[line_no+1:(line_no+15)]
                 lastlines = [line] + lastlines
-                look_ahead_lines = lastlines + look_ahead
+                #look_ahead_lines = lastlines + look_ahead
                 if country_name:
                     corpuses[(country_name, year)].append(line)
                 if key_term in line:
                     found = False
-                    for index, lastline in enumerate(reversed(look_ahead_lines)):
-                        # Strip out weird chars
-                        lastline = re.sub(r'^o ', '', lastline)
-                        lastline = re.sub(r'^r ', '', lastline)
-                        lastline = lastline.replace(weird_char, "")\
-                            .strip()
-    
-                        # Country names start with capital letter
-                        #if len(lastline) == 0 or not lastline[0].isupper():
-                        #    continue
+                    found_line = None
+                    found_countries = find_countries(lastlines)
+                    iterate_lines = lastlines
+                    # Some pecularities surface when multiple countries
+                    # are on the same page. For this we reverse the order.
+                    # Since these countries are often colonies we also filter
+                    # to remove the 'big country' names else we might mistakenly
+                    # pick the big country name insterad of the colony name.
+                    if len(found_countries) > 1:
+                        iterate_lines = reversed(remove_big_countries(lastlines))
+                
+                    for lastline in iterate_lines:
+                        lastline = clean_line(lastline)
                         # Filter false postives e.g. Capital: Kuwait City
                         if lastline.split(":")[0] == 'Capital':
                             continue
@@ -197,27 +236,39 @@ def main():
                             # Already processed then skip
                             if not lastline in countries:
                                 found = True
-                                country_name = lastline
-                                countries[country_name] = countries.get(country_name, 0) + 1
-                                corpuses[(country_name, year)] = [line]
+                                found_line = lastline
                                 break
-                            #else:
-                            #    print(f'ALREADY {lastline}')
-                    #if not found:
-                    #    print(f'TRUE NEGATIVE? {page_number} {year} {[l for l in look_ahead_lines if len(l.split()) < 12]}')
-                        #print(f'TRUE NEGATIVE? {page_number} {year} {len(lastlines)} {lastlines}')
+                    # if not found in the in look back, we search the
+                    # look ahead list.
+                    if not found:
+                        for lastline in look_ahead:
+                            lastline = clean_line(lastline)
+                            # Filter false postives e.g. Capital: Kuwait City
+                            if lastline.split(":")[0] == 'Capital':
+                                continue
+                            if utils.is_country(lastline):
+                                # Already processed then skip
+                                if not lastline in countries:
+                                    found = True
+                                    found_line = lastline
+                                    break
+                    if found:
+                        country_name = found_line
+                        countries[country_name] = countries.get(country_name, 0) + 1
+                        corpuses[(country_name, year)] = [line]
 
 
 
-    sorted_dict = dict(sorted(countries.items(), key=lambda item: item[1], reverse=True))
-    for k, v in sorted_dict.items():
-        print(f'{k} {v}')
-    #for k, v in corpuses.items():
-    #    print(k)
-    #    print("-----")
-    #    for l in v:
-    #        print(l)
-    #    print()
-    #    print()
+    #sorted_dict = dict(sorted(countries.items(), key=lambda item: item[1], reverse=True))
+    #for k, v in sorted_dict.items():
+    #    print(f'{k} {v}')
+    for (country, year), text in corpuses.items():
+        print(f'{utils.fix_country_name(country)} {year}')
+        print("-----")
+        for line in text:
+            print(line)
+        print("-----")
+        print()
+    print(f'Number of countries/regions: {len(corpuses)}')
 
 main()
