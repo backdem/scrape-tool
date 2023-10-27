@@ -12,9 +12,54 @@ nlp = spacy.load("en_core_web_sm")
 nltk.download('punkt')
 nltk.download('words')
 
-countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries] + [c.name.lower() for c in pycountry.countries] + ["venda", "kosovo", "yugoslavia", "ciskei", "madeira", "canary islands", "channel islands", "reunion", "syria", "st. kitts-nevis", "st. vincent and the grenadines", "british virgin islands", "iran", "russia", "falkland islands", "macedonia", "aimenia", "azeitaijan", "swaziland", "vojvodina", "united states virgin islands", "northern marianas", "turks and caicos", "transkei", "svalbard", "wallis and futuna islands", "melilla", "irian jaya", "faeroe islands", "zaire", "united states of america", "sao tome and príncipe", "st. lucia", "korea, north", "korea, south", "laos", "micronesia", "kyrgyz republic", "brunei", "burma (myanmar)", "cape verde", "czech republic", "bosnia-herzegovina", "nagorno-karabakh", "(serbia and montenegro)", "st. pierre and miquelon", "rapanui (easter island)", "st. helena and dependencies"]
+countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries] + [c.name.lower() for c in pycountry.countries] + ["venda", "kosovo", "yugoslavia", "ciskei", "madeira", "canary islands", "channel islands", "reunion", "syria", "st. kitts-nevis", "st. vincent and the grenadines", "british virgin islands", "iran", "russia", "falkland islands", "macedonia", "aimenia", "azeitaijan", "swaziland", "vojvodina", "united states virgin islands", "northern marianas", "turks and caicos", "transkei", "svalbard", "wallis and futuna islands", "melilla", "irian jaya", "faeroe islands", "zaire", "united states of america", "sao tome and príncipe", "st. lucia", "korea, north", "korea, south", "laos", "micronesia", "kyrgyz republic", "brunei", "burma (myanmar)", "cape verde", "czech republic", "bosnia-herzegovina", "nagorno-karabakh", "(serbia and montenegro)", "st. pierre and miquelon", "rapanui (easter island)", "st. helena and dependencies", "west bank", "transnistria", "tibet", "south ossetia", "são tomé and príncipe", "gaza strip", "gazastrip", "abkhazia", "indian kashmir", "pakistani kashmir", "somaliland", "east timor", "congo, democratic republic of (kinshasa)", "(kinshasa)", "congo, republic of (brazzaville)", "crimea", "coˆte d’ivoire", "côte d'lvoire", "ivory coast", "são tomé and prícipe", "sao tomé and príncipe", "west papua (irian jaya)", "st. helena and", "central african", "costs rica", "czechoslovakia", "yemen, north", "yemen, south", "marshall islands", "virgin islands", "marianas", "british virgin", "bophutatswana", "the west bank", "antilles", "andorra", "futuna islands", "miquelon", "reunion", "french southern", "cocos (keeling)", "vanautu", "rapanui (easter", "bermuda", "azores", "emirates", "union of soviet", "tobago", "sao tome", "st. vincent", "nevis (st. kitts-", "equatorial", "germany, west", "germany, east", "dominican", "burma", "antigua"]
+
+country_mappings = {
+    "central african": "central african republic",
+    "costs rica": "costa rica",
+    "equatorial": "equatorial guinea",
+    "germany, west": "west germany",
+    "germany, east": "east germany",
+    "dominican": "dominican republic",
+    "antigua": "antigua and barbuda",
+    "virgin islands": "united states virgin islands",
+    "palau (belau)": "palau",
+    "belau": "palau",
+    "marianas": "northen marianas",
+    "st. helena and": "saint helena",
+    "british virgin": "british virgin islands",
+    "antilles": "netherland antilles",
+    "the west bank": "west bank",
+    "futuna islands": "wallis and futuna islands",
+    "miquelon": "saint pierre and miquelon",
+    "mayotte (mahore)": "mayotte",
+    "french southern": "french southern and antarctic territories",
+    "rapanui (easter": "rapa nui",
+    "cocos (keeling)": "cocos islands",
+    "yemen, south": "south yemen",
+    "yemen, north": "north yemen",
+    "united states": "usa",
+    "emirates": "united arab emirates",
+    "union of soviet": "ussr",
+    "tobago": "trinidad and tobago",
+    "sao tome": "são tomé and príncipe",
+    "st. vincent": "saint vincent and the grenadines",
+    "st. lucia": "saint lucia",
+    "nevis (st. kitts-": "saint kitts and nevis",
+    "korea, north": "north korea",
+    "korea, south": "south korea",
+    "new guinea": "papua new guinea"
+
+}
 
 max_country_len = max(len(c.split()) for c in countries)
+
+def fix_country_name(name):
+    n = name.lower().strip()
+    if n in country_mappings:
+        return country_mappings[n]
+    else:
+        return n
 
 def is_country(text):
     if len(text.split(' ')) > 6:
