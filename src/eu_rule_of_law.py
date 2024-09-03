@@ -4,7 +4,7 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 import utils
 
-url_pattern = 'https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:52020SC0'
+# url_pattern = 'https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:52020SC0'
 url_source = None
 
 
@@ -57,7 +57,7 @@ def create_data_structure(html):
     return rows
 
 
-def get_html_doc(doc_no):
+def get_html_doc(doc_no, url_pattern):
     url = url_pattern + str(doc_no)
     global url_source
     url_source = url

@@ -2,6 +2,7 @@ import os
 import csv
 import fitz as PyMuPDF
 import nltk
+nltk.download('punkt_tab')
 from nltk.corpus import words
 import datetime
 import pycountry
