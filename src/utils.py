@@ -7,14 +7,19 @@ import datetime
 import pycountry
 import re
 import spacy
+import langid
 nlp = spacy.load("en_core_web_sm")
 
 nltk.download('punkt')
 nltk.download('words')
 
-countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries] + [c.name.lower() for c in pycountry.countries] + ["venda", "kosovo", "yugoslavia", "ciskei", "madeira", "canary islands", "channel islands", "reunion", "syria", "st. kitts-nevis", "st. vincent and the grenadines", "british virgin islands", "iran", "russia", "falkland islands", "macedonia", "aimenia", "azeitaijan", "swaziland", "vojvodina", "united states virgin islands", "northern marianas", "turks and caicos", "transkei", "svalbard", "wallis and futuna islands", "melilla", "irian jaya", "faeroe islands", "zaire", "united states of america", "sao tome and príncipe", "st. lucia", "korea, north", "korea, south", "laos", "micronesia", "kyrgyz republic", "brunei", "burma (myanmar)", "cape verde", "czech republic", "bosnia-herzegovina", "nagorno-karabakh", "(serbia and montenegro)", "st. pierre and miquelon", "rapanui (easter island)", "st. helena and dependencies", "west bank", "transnistria", "tibet", "south ossetia", "são tomé and príncipe", "gaza strip", "gazastrip", "abkhazia", "indian kashmir", "pakistani kashmir", "somaliland", "east timor", "congo, democratic republic of (kinshasa)", "(kinshasa)", "congo, republic of (brazzaville)", "crimea", "coˆte d’ivoire", "côte d'lvoire", "ivory coast", "são tomé and prícipe", "sao tomé and príncipe", "west papua (irian jaya)", "st. helena and", "central african", "costs rica", "czechoslovakia", "yemen, north", "yemen, south", "marshall islands", "virgin islands", "marianas", "british virgin", "bophutatswana", "the west bank", "antilles", "andorra", "futuna islands", "miquelon", "reunion", "french southern", "cocos (keeling)", "vanautu", "rapanui (easter", "bermuda", "azores", "emirates", "union of soviet", "tobago", "sao tome", "st. vincent", "nevis (st. kitts-", "equatorial", "germany, west", "germany, east", "dominican", "burma", "antigua"]
+countries = [c.name.lower() if not hasattr(c, 'common_name') else c.common_name.lower() for c in pycountry.countries] + [c.name.lower() for c in pycountry.countries] + ["venda", "kosovo", "yugoslavia", "ciskei", "madeira", "canary islands", "channel islands", "reunion", "syria", "st. kitts-nevis", "st. vincent and the grenadines", "british virgin islands", "iran", "russia", "falkland islands", "macedonia", "aimenia", "azeitaijan", "swaziland", "vojvodina", "united states virgin islands", "northern marianas", "turks and caicos", "transkei", "svalbard", "wallis and futuna islands", "melilla", "irian jaya", "faeroe islands", "zaire", "united states of america", "sao tome and príncipe", "st. lucia", "korea, north", "korea, south", "laos", "micronesia", "kyrgyz republic", "brunei", "burma (myanmar)", "cape verde", "czech republic", "bosnia-herzegovina", "nagorno-karabakh", "(serbia and montenegro)", "st. pierre and miquelon", "rapanui (easter island)", "st. helena and dependencies", "west bank", "transnistria", "tibet", "south ossetia", "são tomé and príncipe", "gaza strip", "gazastrip", "abkhazia", "indian kashmir", "pakistani kashmir", "somaliland", "east timor", "congo, democratic republic of (kinshasa)", "(kinshasa)", "congo, republic of (brazzaville)", "crimea", "coˆte d’ivoire", "côte d'lvoire", "ivory coast", "são tomé and prícipe", "sao tomé and príncipe", "west papua (irian jaya)", "st. helena and", "central african", "costs rica", "czechoslovakia", "yemen, north", "yemen, south", "marshall islands", "virgin islands", "marianas", "british virgin", "bophutatswana", "the west bank", "antilles", "andorra", "futuna islands", "miquelon", "reunion", "french southern", "cocos (keeling)", "vanautu", "rapanui (easter", "bermuda", "azores", "emirates", "union of soviet", "tobago", "sao tome", "st. vincent", "nevis (st. kitts-", "equatorial", "germany, west", "germany, east", "dominican", "burma", "antigua", "solomon", "kingdom", "the grenadines", "nevis"]
 
 country_mappings = {
+    "nevis": "saint kitts and nevis",
+    "the grenadines": "saint vincent and the grenadines",
+    "kingdom": "united kingdom",
+    "solomon": "solomon islands",
     "central african": "central african republic",
     "costs rica": "costa rica",
     "equatorial": "equatorial guinea",
@@ -100,6 +105,14 @@ def extract_text_with_page_numbers(file_path):
 
     return text_with_page_numbers
 
+def test_pdf_for_text(file_path, lang="en"):
+    with PyMuPDF.open(file_path) as doc:
+        for page in doc:
+            text = page.get_text()
+            detected_lang, _ = langid.classify(text)
+            if detected_lang == lang:
+                return True
+    return False
 
 def get_pdf_text(data: bytes) -> str:
     with PyMuPDF.open(stream=data, filetype="pdf") as doc:

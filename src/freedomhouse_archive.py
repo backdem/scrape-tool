@@ -6,7 +6,8 @@ import re
 import glob
 import datetime
 
-test_file = './data/sources/freedomhouse/raw-pdf/Freedom_in_the_World_1989-1990_complete_book.pdf'
+test_file1990 = './data/sources/freedomhouse/raw-pdf/Freedom_in_the_World_1989-1990_complete_book.pdf'
+test_file1991 = './data/sources/freedomhouse/raw-pdf/Freedom_in_the_World_1990-1991_complete_book.pdf'
 test_file2 = './data/sources/freedomhouse/raw-pdf/Freedom_in_the_World_2016_complete_book.pdf'
 pdf_folder = './data/sources/freedomhouse/raw-pdf'
 
@@ -18,9 +19,10 @@ search_term = {
         '2020:now': 'Freedom Status'
         }
 
+        #1991: 452,
 end_pages = {
         1990: 313,
-        1991: 452,
+        1991: 406,
         1992: 575,
         1993: 625,
         1994: 676,
@@ -148,7 +150,7 @@ def main():
 
     # Get the list of pdf year reports downloaded by download script
     #pdf_files = glob.glob(os.path.join(pdf_folder, '*.pdf'))
-    pdf_files = [test_file]
+    pdf_files = [test_file1991]
     countries = {}
     weird_char = chr(0xF0C8)
     big_countries = ["United Kingdom", "United States", "Australia", "Switzerland", "France", "Italy", "Denmark", "Spain"]
@@ -196,22 +198,24 @@ def main():
         print(f'Processingg {file}')
         text_with_page_numbers = utils.extract_text_with_page_numbers(file)
         key_term = year_key_map[int(year)]
+        # Keep track of a number of last read lines to find 
+        # the country name in the buffer. 
+        lastlines = []
         for page_number, text in text_with_page_numbers:
             if page_number > end_page:
                 break
             lines = text.splitlines()
-            # Keep track of a number of last read lines to find 
-            # the country name in the buffer. 
-            lastlines = []
             for line_no, line in enumerate(lines):
-                if len(lastlines) > 120:
+                if len(lastlines) > 100:
                     lastlines.pop()
                 # Sometimes the country name is in front of 
                 # the current line so we also keep track of 
                 # look ahead.
-                look_ahead = lines[line_no+1:(line_no+15)]
+                look_ahead = lines[line_no+1:(line_no+100)]
                 lastlines = [line] + lastlines
                 #look_ahead_lines = lastlines + look_ahead
+                #if "Kingdom" in line:
+                #    print(f'{page_number} {line_no} {line}')
                 if country_name:
                     corpuses[(country_name, year)].append(line)
                 if key_term in line:
@@ -224,20 +228,33 @@ def main():
                     # Since these countries are often colonies we also filter
                     # to remove the 'big country' names else we might mistakenly
                     # pick the big country name insterad of the colony name.
-                    if len(found_countries) > 1:
-                        iterate_lines = reversed(remove_big_countries(lastlines))
+                    #if len(found_countries) > 1:
+                    #    iterate_lines = reversed(remove_big_countries(lastlines))
                 
-                    for lastline in iterate_lines:
+                    for index, lastline in enumerate(iterate_lines):
+                        if index < len(iterate_lines) - 2:
+                            two_lines = clean_line(iterate_lines[index-1]) + \
+                                    ' ' + clean_line(lastline)
+                        print(two_lines)
+                        if "Guinea" in two_lines:
+                            print(two_lines)
                         lastline = clean_line(lastline)
                         # Filter false postives e.g. Capital: Kuwait City
                         if lastline.split(":")[0] == 'Capital':
                             continue
-                        if utils.is_country(lastline):
+                        if utils.is_country(two_lines):
                             # Already processed then skip
-                            if not lastline in countries:
+                            if not two_lines in countries:
                                 found = True
-                                found_line = lastline
+                                found_line = two_lines
                                 break
+                        else:
+                            if utils.is_country(lastline):
+                                # Already processed then skip
+                                if not lastline in countries:
+                                    found = True
+                                    found_line = lastline
+                                    break
                     # if not found in the in look back, we search the
                     # look ahead list.
                     if not found:
@@ -256,19 +273,21 @@ def main():
                         country_name = found_line
                         countries[country_name] = countries.get(country_name, 0) + 1
                         corpuses[(country_name, year)] = [line]
+                    else:
+                        print(f'[MISSING] [PAGE {page_number}] [LINE {line_no}] {lastlines} -- {look_ahead}')
 
 
 
     #sorted_dict = dict(sorted(countries.items(), key=lambda item: item[1], reverse=True))
     #for k, v in sorted_dict.items():
     #    print(f'{k} {v}')
-    for (country, year), text in corpuses.items():
-        print(f'{utils.fix_country_name(country)} {year}')
-        print("-----")
-        for line in text:
-            print(line)
-        print("-----")
-        print()
-    print(f'Number of countries/regions: {len(corpuses)}')
+    #for (country, year), text in corpuses.items():
+    #    print(f'({utils.fix_country_name(country)}, {year})')
+    #    print("-----")
+    #    for line in text:
+    #        print(line)
+    #    print("-----")
+    #    print()
+    #print(f'Number of countries/regions: {len(corpuses)}')
 
 main()

@@ -52,6 +52,10 @@ def main():
     parser = argparse.ArgumentParser(description='Parse GRECO country report.')
     parser.add_argument('--overwrite', action='store_true',
                         help='overwrite output file.')
+    parser.add_argument('--metadata', action='store_true',
+                        help='print out only the file metadata.')
+    parser.add_argument('--test_text', action='store_true',
+                        help='test text extract from pdfs')
     parser.add_argument('--outputfolder', nargs='?', default='./',
                         help='output folder for csv files.')
     parser.add_argument('--inputfolder', nargs='?', default=None,
@@ -65,6 +69,17 @@ def main():
     progress = {}
     for filename in os.listdir(args.inputfolder):
         file_path = os.path.join(args.inputfolder, filename)
+        if (args.metadata):
+            metadata = utils.extract_pdf_metadata(file_path)
+            print(file_path)
+            print(metadata)
+            print()
+            continue
+        if (args.test_text):
+            test = utils.test_pdf_for_text(file_path)
+            if not test:
+                print(f'{file_path} {test}')
+            continue
         if os.path.isfile(file_path):
             country, year = get_country_year_from_file(filename)
             rows = create_data_structure(file_path, country, year)
