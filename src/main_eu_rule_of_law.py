@@ -53,7 +53,7 @@ def main():
                     csv_path = os.path.join(args.outputfolder, file)
                     xlsx_path = os.path.splitext(csv_path)[0] + ".xlsx"
                     df = pd.read_csv(csv_path)
-                    df.to_excel(xlsx_path)
+                    df.to_excel(xlsx_path, index=False)
 
             else:
                 print(f"[error] converting {file} with at {time}.")
