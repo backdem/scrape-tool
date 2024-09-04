@@ -1,5 +1,18 @@
 # scrape-tool
 
+## install
+
+```bash
+# Download sources
+git clone https://github.com/backdem/scrape-tool.git
+cd scrape-tool
+# Optional: create a virtual environment
+python -m venv .env
+# Install dependencies
+pip install -r requirements.txt
+
+```
+
 ## eu_rul_of_law
 
 ```
